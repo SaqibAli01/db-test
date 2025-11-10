@@ -18,6 +18,9 @@ const fonts = {
   Amiri: {  // ✅ Nillima کی جگہ Amiri استعمال کریں
     normal: path.join(__dirname, "../fonts/Amiri-Regular.ttf"),
   },
+   Nillima: { // 👈 add this alias
+    normal: path.join(__dirname, "../fonts/Amiri-Regular.ttf"),
+  },
 };
 
 // Check fonts exist
@@ -67,20 +70,7 @@ function getLocationText(hospital, isOnline = false) {
   }
 }
 
-// ============================
-// HELPER: FORMAT DATE TO URDU STYLE (SIMPLE)
-// ============================
-function formatDateToUrdu(dateStr) {
-  const date = new Date(dateStr);
-  const months = [
-    "جنوری", "فروری", "مارچ", "اپریل", "مئی", "جون",
-    "جولائی", "اگست", "ستمبر", "اکتوبر", "نومبر", "دسمبر"
-  ];
-  const day = date.getDate();
-  const month = months[date.getMonth()];
-  const year = date.getFullYear();
-  return `${day} ${month} ${year}`;
-}
+
 
 // ============================
 // HELPER: GET QR BASE64 (ASYNC)
@@ -105,7 +95,6 @@ function generateUrduText(appointment) {
   const dateTime = appointment.datetime || '';
   const location = getLocationText(appointment.hospital, isOnline);
   const phone = appointment.mobile || '03098421122';
-  const urduDate = formatDateToUrdu(dateTime);
   const formattedDateTime = new Date(dateTime).toLocaleString('en-GB', { timeZone: 'Asia/Karachi' });
 
   if (isOnline) {
@@ -376,7 +365,7 @@ async function sendAppointmentEmailWithPdf(appointment) {
     try {
       pdfBuffer = await createAppointmentPdfBuffer(appointment);
     } catch (pdfError) {
-      console.error("⚠️ PDF generation failed (non-fatal):", pdfError.message);
+      console.error("⚠️ PDF generation failed (non-fatal):", pdfError);
       pdfBuffer = null;  // Proceed without PDF
     }
 
