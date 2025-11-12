@@ -206,8 +206,8 @@ doc.text("Location:", 90, y + 78);
 doc.text(details.locationText, 200, y + 78, { width: 320 });
 
 // Fee
-doc.text("Fee:", 90, y + 98);
-doc.text(`${fee} PKR`, 200, y + 98);
+// doc.text("Fee:", 90, y + 98);
+// doc.text(`${fee} PKR`, 200, y + 98);
 
 
 
@@ -318,15 +318,17 @@ async function createSendAppointmentEmailWithPdf(toEmail, appointment) {
     hour: "2-digit",
     minute: "2-digit",
   });
+const body = `
 
-  const body = `
+
 Dear ${appointment.fullName},
 
- Your appointment request has been received!
- Doctor: Prof. Dr. Noor Ul Arfeen  
- Date: ${date} at ${time}
- Type: ${details.appointmentType}
- Location: ${details.locationText}
+We are pleased to inform you that your appointment request has been received!
+
+📌 **Doctor:** Prof. Dr. Noor Ul Arfeen
+📅 **Date & Time:** ${date} at ${time}
+🏥 **Type:** ${details.appointmentType}
+📍 **Location:** ${details.locationText}
 
 Our representative will contact you soon during office hours to confirm your appointment.
 
@@ -338,12 +340,14 @@ ${details.thankYou}`
     : `${details.thankYou}
 
 آپ کی مجوزہ اپائنٹمنٹ درج ہو چکی ہے۔
-ہمارا نمائندہ دفتری اوقات میں تصدیق کے لیے جلد رابطہ کرے گا۔ شکریہ۔`}
+ہمارا نمائندہ دفتری اوقات میں تصدیق کے لیے جلد رابطہ کرے گا۔ شکریہ۔`
+}
 
-Appointment Number: ${appointment.appointmentNumber}
+🔖 **Appointment Number:** ${appointment.appointmentNumber}
 
 Regards,
 ${details.signature}
+
 `;
 
   const mailOptions = {

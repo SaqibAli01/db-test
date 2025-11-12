@@ -3,45 +3,71 @@ const User = require('../models/User.model');
 
 // CREATE user
 exports.createUser = async (req, res) => {
-  const { name, email, phone, password, role } = req.body;
-  const existing = await User.findOne({ email });
-  if (existing) return res.status(409).json({ message: 'Email already in use' });
+  try {
+    const { name, email, phone, password, role, userType } = req.body;
 
-  const user = await User.create({ name, email, phone, password, role });
-  res.status(201).json({ message: 'User created', user });
+    if (!name || !email || !phone || !password || !userType) {
+      return res.status(400).json({ message: 'All required fields must be provided' });
+    }
+
+    const existing = await User.findOne({ email });
+    if (existing) return res.status(409).json({ message: 'Email already in use' });
+
+    const user = await User.create({ name, email, phone, password, role, userType });
+    const { password: pwd, ...userWithoutPassword } = user.toObject();
+
+    res.status(201).json({ message: 'User created', user: userWithoutPassword });
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
 };
 
 // READ users (with search + pagination)
 exports.getUsers = async (req, res) => {
-  const { page = 1, limit = 10, search = '' } = req.query;
-  const query = {
-    $or: [
-      { name: { $regex: search, $options: 'i' } },
-      { email: { $regex: search, $options: 'i' } },
-      { phone: { $regex: search, $options: 'i' } },
-      { role: { $regex: search, $options: 'i' } }
-    ]
-  };
+  try {
+    const { page = 1, limit = 10, search = '' } = req.query;
+    const skip = (page - 1) * limit;
 
-  const skip = (page - 1) * limit;
-  const [users, total] = await Promise.all([
-    User.find(query).select('-password').sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit)),
-    User.countDocuments(query)
-  ]);
+    const query = search
+      ? {
+          $or: [
+            { name: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } },
+            { phone: { $regex: search, $options: 'i' } },
+            { role: { $regex: search, $options: 'i' } },
+            { userType: { $regex: search, $options: 'i' } },
+          ],
+        }
+      : {};
 
-  res.json({
-    page: parseInt(page),
-    totalPages: Math.ceil(total / limit),
-    totalUsers: total,
-    users
-  });
+    const [users, total] = await Promise.all([
+      User.find(query).select('-password').sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit)),
+      User.countDocuments(query),
+    ]);
+
+    res.json({
+      page: parseInt(page),
+      totalPages: Math.ceil(total / limit),
+      totalUsers: total,
+      users,
+    });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
 };
 
 // READ single user
 exports.getUserById = async (req, res) => {
-  const user = await User.findById(req.params.id).select('-password');
-  if (!user) return res.status(404).json({ message: 'User not found' });
-  res.json(user);
+  try {
+    const user = await User.findById(req.params.id).select('-password');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
 };
 
 // UPDATE user
@@ -57,7 +83,6 @@ exports.updateUser = async (req, res) => {
     }
 
     const user = await User.findByIdAndUpdate(id, updates, { new: true }).select('-password');
-
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     res.json({ message: 'User updated successfully', user });
@@ -66,24 +91,18 @@ exports.updateUser = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-// exports.updateUser = async (req, res) => {
-//   const { id } = req.params;
-//   const updates = req.body;
-
-//   if (updates.password) delete updates.password; // password update separately handled
-
-//   const user = await User.findByIdAndUpdate(id, updates, { new: true }).select('-password');
-//   console.log("🚀 ~ user:", user)
-//   if (!user) return res.status(404).json({ message: 'User not found' });
-//   res.json({ message: 'User updated', user });
-// };
 
 // DELETE user
 exports.deleteUser = async (req, res) => {
-  const { id } = req.params;
-  const deleted = await User.findByIdAndDelete(id);
-  if (!deleted) return res.status(404).json({ message: 'User not found' });
-  res.json({ message: 'User deleted successfully' });
-};
+  try {
+    const { id } = req.params;
+    const deleted = await User.findByIdAndDelete(id);
+    if (!deleted) return res.status(404).json({ message: 'User not found' });
 
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 

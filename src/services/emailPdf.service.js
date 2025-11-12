@@ -15,10 +15,12 @@ const fonts = {
     italics: path.join(__dirname, "../fonts/Roboto-Italic.ttf"),
     bolditalics: path.join(__dirname, "../fonts/Roboto-BoldItalic.ttf"),
   },
-  Amiri: {  // ✅ Nillima کی جگہ Amiri استعمال کریں
+  Amiri: {
+    // ✅ Nillima کی جگہ Amiri استعمال کریں
     normal: path.join(__dirname, "../fonts/Amiri-Regular.ttf"),
   },
-   Nillima: { // 👈 add this alias
+  Nillima: {
+    // 👈 add this alias
     normal: path.join(__dirname, "../fonts/Amiri-Regular.ttf"),
   },
 };
@@ -70,8 +72,6 @@ function getLocationText(hospital, isOnline = false) {
   }
 }
 
-
-
 // ============================
 // HELPER: GET QR BASE64 (ASYNC)
 // ============================
@@ -79,7 +79,9 @@ async function getImageBase64(url) {
   try {
     const response = await axios.get(url, { responseType: "arraybuffer" });
     const buffer = Buffer.from(response.data);
-    return `data:${response.headers["content-type"]};base64,${buffer.toString("base64")}`;
+    return `data:${response.headers["content-type"]};base64,${buffer.toString(
+      "base64"
+    )}`;
   } catch (err) {
     console.error("❌ Error fetching image:", err.message);
     return null;
@@ -90,12 +92,14 @@ async function getImageBase64(url) {
 // HELPER: GENERATE URDU TEXT
 // ============================
 function generateUrduText(appointment) {
-  const isOnline = appointment.appointmentType === 'Online';
-  const fullName = appointment.fullName || '';
-  const dateTime = appointment.datetime || '';
+  const isOnline = appointment.appointmentType === "Online";
+  const fullName = appointment.fullName || "";
+  const dateTime = appointment.datetime || "";
   const location = getLocationText(appointment.hospital, isOnline);
-  const phone = appointment.mobile || '03098421122';
-  const formattedDateTime = new Date(dateTime).toLocaleString('en-GB', { timeZone: 'Asia/Karachi' });
+  const phone = appointment.mobile || "03098421122";
+  const formattedDateTime = new Date(dateTime).toLocaleString("en-GB", {
+    timeZone: "Asia/Karachi",
+  });
 
   if (isOnline) {
     return `آپ کی ملاقات کی درخواست کی تصدیق ہو گئی ہے 👨‍⚕️
@@ -119,7 +123,7 @@ ${fullName}
 میٹنگ کو بہتر بنانے کے لیے، برائے مہربانی اپنا پرانا نسخہ اور متعلقہ طبی دستاویزات اپنے ساتھ لائیں۔ اگر آپ کی پہلی ملاقات ہے تو صرف متعلقہ طبی دستاویزات اپنے ہمراہ لائیں شکریہ
 ہم آپ کو جلد دیکھنے کے منتظر ہیں۔ اگر آپ کے کوئی سوالات ہیں یا میٹنگ کی تاریخ تبدیل کرنا چاہتے ہیں تو ہم سے رابطہ کریں. شکریہ
 ٹیم پلمونولوجی چیسٹ کلینک پروفیسر ڈاکٹر نور العارفین
- رابطہ:${'0309 8421122'}`;
+ رابطہ:${"0309 8421122"}`;
   }
 }
 
@@ -127,11 +131,18 @@ ${fullName}
 // CREATE PDF
 // ============================
 async function createAppointmentPdfBuffer(appointment) {
-  const locationText = getLocationText(appointment.hospital, appointment.appointmentType === 'Online');
-  const isPhysical = appointment.appointmentType === 'Physical';
+  const locationText = getLocationText(
+    appointment.hospital,
+    appointment.appointmentType === "Online"
+  );
+  const isPhysical = appointment.appointmentType === "Physical";
   const urduText = generateUrduText(appointment);
   const qrBase64 = await getImageBase64(
     "https://res.cloudinary.com/daxn3hm05/image/upload/v1762167180/qr-code_1_n6kbin.png"
+  );
+
+  const logoBase64 = await getImageBase64(
+    "https://res.cloudinary.com/daxn3hm05/image/upload/v1762362428/html-logs_zkmzc0.jpg"
   );
 
   if (!qrBase64) {
@@ -142,44 +153,54 @@ async function createAppointmentPdfBuffer(appointment) {
   const docDefinition = {
     pageSize: "A4",
     pageOrientation: "portrait",
-    pageMargins: [30, 50, 30, 30], // Reduced margins for more space
+    pageMargins: [30, 10, 30, 20], // left, top, right, bottom
     content: [
       // Header Section - Compact, without logo
       {
         columns: [
           {
-            width: "80%",
-            stack: [
-              {
-                text: "Prof. Dr. Noor Ul Arfeen",
-                style: "doctorHeader",
-                alignment: "center",
-              },
-              {
-                text: "Consultant Physician Pulmonologist & Intensivist",
-                fontSize: 9, // Reduced
-                color: "#9A3C78",
-                alignment: "center",
-                margin: [0, -5, 0, 0],
-              },
-              {
-                text: "Pulmonology / Chest Clinic",
-                fontSize: 9, // Reduced
-                color: "#9A3C78",
-                alignment: "center",
-                margin: [0, -5, 0, 5], // Reduced bottom margin
-              },
-            ],
-          },
-          {
-            width: "20%",
-            image: qrBase64,
-            fit: [50, 50], // Smaller QR
-            alignment: "right",
-            margin: [0, 0, 0, 5],
+            image: logoBase64,
+            width: 520, // Approx full page width (adjust according to your page size)
+            alignment: "center",
+            margin: [0, 0, 0, 0], // Bottom margin
           },
         ],
-        margin: [0, 0, 0, 15], // Reduced
+        margin: [0, 0, 0, 2], // Header bottom margin
+
+        // columns: [
+        //   {
+        //     width: "80%",
+        //     stack: [
+        //       {
+        //         text: "Prof. Dr. Noor Ul Arfeen",
+        //         style: "doctorHeader",
+        //         alignment: "center",
+        //       },
+        //       {
+        //         text: "Consultant Physician Pulmonologist & Intensivist",
+        //         fontSize: 9, // Reduced
+        //         color: "#9A3C78",
+        //         alignment: "center",
+        //         margin: [0, -5, 0, 0],
+        //       },
+        //       {
+        //         text: "Pulmonology / Chest Clinic",
+        //         fontSize: 9, // Reduced
+        //         color: "#9A3C78",
+        //         alignment: "center",
+        //         margin: [0, -5, 0, 5], // Reduced bottom margin
+        //       },
+        //     ],
+        //   },
+        //   {
+        //     width: "20%",
+        //     image: qrBase64,
+        //     fit: [50, 50], // Smaller QR
+        //     alignment: "right",
+        //     margin: [0, 0, 0, 5],
+        //   },
+        // ],
+        // margin: [0, 0, 0, 15], // Reduced
       },
       // Confirmation
       {
@@ -196,10 +217,10 @@ async function createAppointmentPdfBuffer(appointment) {
           body: [
             [
               {
-                text: "Patient Information", 
-                bold: true, 
-                fillColor: "#F3F4F6", 
-                padding: [8, 4] // Reduced padding
+                text: "Patient Information",
+                bold: true,
+                fillColor: "#F3F4F6",
+                padding: [8, 4], // Reduced padding
               },
             ],
             [
@@ -207,9 +228,13 @@ async function createAppointmentPdfBuffer(appointment) {
                 ul: [
                   [`Full Name: ${appointment.fullName}`],
                   [`Appointment Number: ${appointment.appointmentNumber}`],
-                  [`Date: ${new Date(appointment.datetime).toLocaleDateString('en-GB')}`],
-                  [`Phone: ${appointment.mobile || ''}`],
-                  [`Email: ${appointment.email || ''}`],
+                  [
+                    `Date: ${new Date(appointment.datetime).toLocaleDateString(
+                      "en-GB"
+                    )}`,
+                  ],
+                  [`Phone: ${appointment.mobile || ""}`],
+                  [`Email: ${appointment.email || ""}`],
                 ],
                 margin: [0, 3, 0, 8], // Reduced
               },
@@ -225,7 +250,13 @@ async function createAppointmentPdfBuffer(appointment) {
           widths: ["*", "35%"], // Slightly adjusted
           body: [
             [
-              { text: "Doctor & Clinic Details", bold: true, fillColor: "#F3F4F6", colSpan: 2, padding: [8, 4] },
+              {
+                text: "Doctor & Clinic Details",
+                bold: true,
+                fillColor: "#F3F4F6",
+                colSpan: 2,
+                padding: [8, 4],
+              },
               {},
             ],
             [
@@ -238,21 +269,27 @@ async function createAppointmentPdfBuffer(appointment) {
             ],
             [
               { text: locationText, margin: [0, 3, 0, 0], fontSize: 10 },
-              { text: isPhysical ? "Physical" : "Online", fillColor: isPhysical ? "#D1FAE5" : "#EFF6FF", padding: [4, 2], fontSize: 10 },
+              {
+                text: isPhysical ? "Physical" : "Online",
+                fillColor: isPhysical ? "#D1FAE5" : "#EFF6FF",
+                padding: [4, 2],
+                fontSize: 10,
+              },
             ],
           ],
         },
         layout: {
-          fillColor: (rowIndex, node, columnIndex) => (rowIndex === 0 ? "#F3F4F6" : null),
+          fillColor: (rowIndex, node, columnIndex) =>
+            rowIndex === 0 ? "#F3F4F6" : null,
         },
         margin: [0, 0, 0, 10],
       },
       // Fee Section - Compact
-      {
-        text: "Flu Vaccination fee (Optional): 4000 PKR",
-        style: "feeText",
-        margin: [0, 0, 0, 8],
-      },
+      // {
+      //   text: "Flu Vaccination fee (Optional): 4000 PKR",
+      //   style: "feeText",
+      //   margin: [0, 0, 0, 8],
+      // },
       // Instructions Box - Smaller font
       {
         text: [
@@ -285,14 +322,14 @@ async function createAppointmentPdfBuffer(appointment) {
             margin: [0, 30, 0, 0], // Adjusted
           },
         ],
-        margin: [0, 0, 0, 15],
+        margin: [0, 0, 0, 10],
       },
       // Footer - Compact
       {
         text: "© 2025 Pulmonology Chest Clinic - Thank you for choosing us. Contact: 0309 8421122",
         style: "footer",
         alignment: "center",
-        margin: [0, 10, 0, 0],
+        margin: [0, 5, 0, 0],
       },
     ],
     defaultStyle: {
@@ -318,7 +355,7 @@ async function createAppointmentPdfBuffer(appointment) {
         margin: [0, 0, 0, 5],
       },
       urduTextFull: {
-        font: "Amiri",  // ✅ یہاں Amiri استعمال کریں
+        font: "Amiri", // ✅ یہاں Amiri استعمال کریں
         fontSize: 9, // Reduced significantly
         alignment: "right",
         color: "#374151",
@@ -353,7 +390,7 @@ async function createAppointmentPdfBuffer(appointment) {
 // SEND EMAIL WITH PDF
 // ============================
 async function sendAppointmentEmailWithPdf(appointment) {
-  console.log('appointment', appointment);
+  console.log("appointment", appointment);
   try {
     // ✅ Validate email first
     if (!appointment.email) {
@@ -366,34 +403,80 @@ async function sendAppointmentEmailWithPdf(appointment) {
       pdfBuffer = await createAppointmentPdfBuffer(appointment);
     } catch (pdfError) {
       console.error("⚠️ PDF generation failed (non-fatal):", pdfError);
-      pdfBuffer = null;  // Proceed without PDF
+      pdfBuffer = null; // Proceed without PDF
     }
 
     const mailOptions = {
-      from: `"Pulmonology Clinic" <${process.env.SMTP_USER}>`,
+      from: process.env.EMAIL_FROM,
       to: appointment.email,
       subject: `Appointment Confirmation - ${appointment.appointmentNumber}`,
       html: `
-        <h3>Dear ${appointment.fullName},</h3>
-        <p>Your appointment has been confirmed with Prof. Dr. Noor Ul Arfeen.</p>
-        <p><strong>Date & Time:</strong> ${appointment.datetime}</p>
-        <p><strong>Hospital:</strong> ${appointment.hospital}</p>
-        <p><strong>Location:</strong> ${getLocationText(appointment.hospital, appointment.appointmentType === 'Online')}</p>
-        <p>Consultation Fee: 3500 PKR</p>
-        <p>Thank you for choosing Pulmonology Chest Clinic.</p>
-        <p>Please find your confirmation PDF attached.${pdfBuffer ? '' : ' (PDF unavailable this time—contact us if needed.)'}</p>
-      `,
-      attachments: pdfBuffer ? [
-        {
-          filename: `Appointment-${appointment.appointmentNumber}.pdf`,
-          content: pdfBuffer,
-          contentType: "application/pdf",
-        },
-      ] : [],
+  <h3>Dear ${appointment.fullName},</h3>
+  <p>🕐 Your appointment request has been confirmed.</p>
+  <p>👨⚕️ <strong>Doctor:</strong> Prof. Dr. Noor Ul Arfeen</p>
+  <p>📅 <strong>Date:</strong> ${appointment.datetime}</p>
+  <p>📌 <strong>Appointment Type:</strong> ${appointment.appointmentType}</p>
+  <p>🏥 <strong>Location:</strong> ${getLocationText(
+    appointment.hospital,
+    appointment.appointmentType === "Online"
+  )}</p>
+
+  <p>Please arrive 15 minutes prior to your scheduled time to complete the necessary formalities.</p>
+  <p>To ensure a smooth consultation, kindly bring your old prescription and relevant medical records with you. If it is your first appointment, bring only necessary medical records.</p>
+  <p>We look forward to seeing you soon. If you have any questions or need to reschedule, please contact <strong>0309 8421122</strong>.</p>
+  <p>Thank you for choosing Pulmonology Chest Clinic.</p>
+  <p><strong>Appointment Number:</strong> ${appointment.appointmentNumber}</p>
+  <p>Regards,<br/>
+  Team Pulmonology / Chest Clinic by Prof Dr Noor Ul Arfeen</p>
+
+  <hr/>
+
+  <p>اسلام وعلیکم ${appointment.fullName},</p>
+  <p>ہم آپ کی پروفیسر ڈاکٹر نور العارفین کے ساتھ ${
+    appointment.datetime
+  } کو ${getLocationText(
+        appointment.hospital,
+        appointment.appointmentType === "Online"
+      )} پر شیڈول کردہ ملاقات کی تصدیق کرتے ہیں۔</p>
+  <p>برائے مہربانی ضروری کارروائی کے لیے اپنی مقررہ وقت سے 15 منٹ قبل تشریف لائیں۔</p>
+  <p>میٹنگ کو بہتر بنانے کے لیے، برائے مہربانی اپنا پرانا نسخہ اور متعلقہ طبی دستاویزات اپنے ساتھ لائیں۔ اگر آپ کی پہلی ملاقات ہے تو صرف متعلقہ طبی دستاویزات اپنے ہمراہ لائیں۔ شکریہ</p>
+  <p>ہم آپ کو جلد دیکھنے کے منتظر ہیں۔ اگر آپ کے کوئی سوالات ہیں یا میٹنگ کی تاریخ تبدیل کرنا چاہتے ہیں تو ہم سے رابطہ کریں۔ شکریہ</p>
+  <p>ٹیم پلمونولوجی چیسٹ کلینک پروفیسر ڈاکٹر نور العارفین<br/>
+  رابطہ: 0309 8421122</p>
+  
+  <p>Please find your confirmation PDF attached.${
+    pdfBuffer ? "" : " (PDF unavailable this time—contact us if needed.)"
+  }</p>
+`,
+      // <p>💰 <strong>Consultation Fee:</strong> 3500 PKR</p>
+      // <p>💉 <strong>Vaccination Charges (Optional):</strong> 4000 PKR</p>
+      // html: `
+      //   <h3>Dear ${appointment.fullName},</h3>
+      //   <p>Your appointment has been confirmed with Prof. Dr. Noor Ul Arfeen.</p>
+      //   <p><strong>Date & Time:</strong> ${appointment.datetime}</p>
+      //   <p><strong>Hospital:</strong> ${appointment.hospital}</p>
+      //   <p><strong>Location:</strong> ${getLocationText(appointment.hospital, appointment.appointmentType === 'Online')}</p>
+      //   <p>Consultation Fee: 3500 PKR</p>
+      //   <p>Thank you for choosing Pulmonology Chest Clinic.</p>
+      //   <p>Please find your confirmation PDF attached.${pdfBuffer ? '' : ' (PDF unavailable this time—contact us if needed.)'}</p>
+      // `,
+      attachments: pdfBuffer
+        ? [
+            {
+              filename: `Appointment-${appointment.appointmentNumber}.pdf`,
+              content: pdfBuffer,
+              contentType: "application/pdf",
+            },
+          ]
+        : [],
     };
 
     await transporter.sendMail(mailOptions);
-    console.log(`✅ Email sent successfully to ${appointment.email}${pdfBuffer ? ' with PDF' : ' (no PDF)'}`);
+    console.log(
+      `✅ Email sent successfully to ${appointment.email}${
+        pdfBuffer ? " with PDF" : " (no PDF)"
+      }`
+    );
   } catch (error) {
     console.error("❌ Email sending failed:", error);
     console.error("Full error:", error.stack);
