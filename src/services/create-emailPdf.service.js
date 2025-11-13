@@ -105,11 +105,11 @@ async function createAppointmentPdfBuffer(appointment) {
     month: "long",
     year: "numeric",
   });
-  const time = new Date(appt.datetime).toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  const fee = appt.fee || 3500;
+  // const time = new Date(appt.datetime).toLocaleTimeString("en-GB", {
+  //   hour: "2-digit",
+  //   minute: "2-digit",
+  // });
+  // const fee = appt.fee || 3500;
 
   const logoBase64 = await getImageBase64(
     "https://res.cloudinary.com/daxn3hm05/image/upload/v1762362428/html-logs_zkmzc0.jpg"
@@ -314,23 +314,24 @@ async function createSendAppointmentEmailWithPdf(toEmail, appointment) {
     month: "long",
     year: "numeric",
   });
-  const time = new Date(appointment.datetime).toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+//  const time = new Date(appointment.datetime).toLocaleTimeString("en-US", {
+//   hour: "2-digit",
+//   minute: "2-digit",
+//   hour12: true,
+// });
+
 const body = `
-
-
 Dear ${appointment.fullName},
 
-We are pleased to inform you that your appointment request has been received!
+🕐 Your appointment request has been received!
 
-📌 **Doctor:** Prof. Dr. Noor Ul Arfeen
-📅 **Date & Time:** ${date} at ${time}
-🏥 **Type:** ${details.appointmentType}
-📍 **Location:** ${details.locationText}
+👨 Doctor: Prof. Dr. Noor Ul Arfeen
+📅 Date : ${date}
+📌 Type: ${details.appointmentType}
+🏥 Location: ${details.locationText}
 
-Our representative will contact you soon during office hours to confirm your appointment.
+
+Our representative will contact you soon during office hours to confirm your appointment
 
 ${details.urduFirst
     ? `آپ کی مجوزہ اپائنٹمنٹ درج ہو چکی ہے۔
@@ -343,7 +344,7 @@ ${details.thankYou}`
 ہمارا نمائندہ دفتری اوقات میں تصدیق کے لیے جلد رابطہ کرے گا۔ شکریہ۔`
 }
 
-🔖 **Appointment Number:** ${appointment.appointmentNumber}
+🔖 Appointment Number: ${appointment.appointmentNumber}
 
 Regards,
 ${details.signature}
