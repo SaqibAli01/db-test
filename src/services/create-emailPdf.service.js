@@ -97,6 +97,7 @@ async function getImageBase64(url) {
 
 // 🧾 Generate Appointment PDF
 async function createAppointmentPdfBuffer(appointment) {
+  console.log("🚀 ~  ~ appointment:", appointment)
   const appt = appointment;
   const details = getAppointmentDetails(appt.hospital || "");
 

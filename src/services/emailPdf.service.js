@@ -97,9 +97,16 @@ function generateUrduText(appointment) {
   const dateTime = appointment.datetime || "";
   const location = getLocationText(appointment.hospital, isOnline);
   const phone = appointment.mobile || "03098421122";
-  // const formattedDateTime = new Date(dateTime).toLocaleString("en-GB", {
-  //   timeZone: "Asia/Karachi",
-  // });
+  const phoneUrdu = `\u202A${phone}\u202C`;
+  const message = `رابطہ: ${phoneUrdu}`;
+  const showMessage = appointment.appointmentType !== "Gujranwala Chaudhary Hospital"? message : "";
+  
+  const H_phone =  "03098421122";
+  const H_phoneUrdu = `\u202A${H_phone}\u202C`;
+  const H_message = `رابطہ: ${H_phoneUrdu}`;
+  const H_showMessage = appointment.appointmentType !== "Gujranwala Chaudhary Hospital"? H_message : "";
+
+
   const formattedDateTime = new Date(appointment.datetime).toLocaleString("en-US", {
   day: "2-digit",
   month: "short",
@@ -124,7 +131,7 @@ const date = new Date(dateTime).toLocaleDateString("en-US", {
 1- مستحکم انٹرنیٹ کنکشن
 2- موبائل نمبر وہی ہونا چاہئے جو آپ نے بکنگ کے وقت استعمال کیا تھا
 3- یقینی بنائیں کہ آپ کے موبائل یا لیپ ٹاپ کا کیمرہ مریض پر مرکوز ہو۔
-ہمارا نمائندہ آپ سے مقررہ وقت سے 15 منٹ قبل رابطہ کرے گا۔ ہم آپ سے درخواست کرتے ہیں کہ اپنی پچھلی طبی رپورٹس ${phone}پر بھیج دیں قبل اس کے کہ آن لائن مشاورت کا وقت ہو۔
+ہمارا نمائندہ آپ سے مقررہ وقت سے 15 منٹ قبل رابطہ کرے گا۔ ہم آپ سے درخواست کرتے ہیں کہ اپنی پچھلی طبی رپورٹس ${phoneUrdu}پر بھیج دیں قبل اس کے کہ آن لائن مشاورت کا وقت ہو۔
 ہم آپ سے آن لائن ملاقات کے منتظر ہیں۔
 ٹیم پلمونولوجی چیسٹ کلینک`;
   } else {
@@ -135,7 +142,8 @@ ${fullName}
 میٹنگ کو بہتر بنانے کے لیے، برائے مہربانی اپنا پرانا نسخہ اور متعلقہ طبی دستاویزات اپنے ساتھ لائیں۔ اگر آپ کی پہلی ملاقات ہے تو صرف متعلقہ طبی دستاویزات اپنے ہمراہ لائیں شکریہ
 ہم آپ کو جلد دیکھنے کے منتظر ہیں۔ اگر آپ کے کوئی سوالات ہیں یا میٹنگ کی تاریخ تبدیل کرنا چاہتے ہیں تو ہم سے رابطہ کریں. شکریہ
 ٹیم پلمونولوجی چیسٹ کلینک پروفیسر ڈاکٹر نور العارفین
- رابطہ:${"0309 8421122"}`;
+${H_showMessage}
+ `;
   }
 }
 
@@ -408,7 +416,7 @@ async function createAppointmentPdfBuffer(appointment) {
 // SEND EMAIL WITH PDF
 // ============================
 async function sendAppointmentEmailWithPdf(appointment) {
-  console.log("appointment", appointment);
+
 
 const formattedDate = new Date(appointment.datetime).toLocaleString("en-US", {
   day: "2-digit",
@@ -419,8 +427,16 @@ const formattedDate = new Date(appointment.datetime).toLocaleString("en-US", {
   hour12: true,
 });
 
-console.log(formattedDate);
 
+const phone = appointment.mobile || "03098421122";
+  const phoneUrdu = `\u202A${phone}\u202C`;
+  const message = `رابطہ:  ${phoneUrdu}`;
+  const showMessage = appointment.appointmentType !== "Gujranwala Chaudhary Hospital"? message : "";
+  const showPhoneNo= appointment.appointmentType !== "Gujranwala Chaudhary Hospital"? phone : "";
+const Ho_phone = "03098421122";
+  const Ho_phoneUrdu = `\u202A${Ho_phone}\u202C`;
+   const Ho_message = `رابطہ:  ${Ho_phoneUrdu}`;
+  const Ho_showMessage = appointment.appointmentType !== "Gujranwala Chaudhary Hospital"? Ho_message : "";
   try {
     // ✅ Validate email first
     if (!appointment.email) {
@@ -455,7 +471,7 @@ console.log(formattedDate);
   <p>2- Phone number must be same which used while booking appointment</p>
   <p>3- Make sure camera of your phone or laptop focused on patient</p>
   <p>Our representative will contact you 15 minutes prior of scheduled online consultation.</p>
-  <p>We kindly request you to send your previous medical records to <strong>0309 8421122</strong> before online consultation scheduled time.</p>
+  <p>We kindly request you to send your previous medical records to <strong>${phone}</strong> before online consultation scheduled time.</p>
   <p>We look forward to connecting with you Online.</p>
   <p><strong>Best regards,</strong><br/>
   Team Pulmonology Chest Clinic by Prof. Dr Noor Ul Arfeen</p>
@@ -470,7 +486,7 @@ console.log(formattedDate);
   <p>1- مستحکم انٹرنیٹ کنکشن</p>
   <p>2- موبائل نمبر وہی ہونا چاہئے جو آپ نے بکنگ کے وقت استعمال کیا تھا</p>
   <p>3- یقینی بنائیں کہ آپ کے موبائل یا لیپ ٹاپ کا کیمرہ مریض پر مرکوز ہو۔</p>
-  <p>ہمارا نمائندہ آپ سے مقررہ وقت سے 15 منٹ قبل رابطہ کرے گا۔ ہم آپ سے درخواست کرتے ہیں کہ اپنی پچھلی طبی رپورٹس <strong>0309 8421122</strong> پر بھیج دیں قبل اس کے کہ آن لائن مشاورت کا وقت ہو۔</p>
+  <p>ہمارا نمائندہ آپ سے مقررہ وقت سے 15 منٹ قبل رابطہ کرے گا۔ ہم آپ سے درخواست کرتے ہیں کہ اپنی پچھلی طبی رپورٹس <strong>${phoneUrdu}</strong> پر بھیج دیں قبل اس کے کہ آن لائن مشاورت کا وقت ہو۔</p>
   <p>ہم آپ سے آن لائن ملاقات کے منتظر ہیں۔</p>
   <p><strong>ٹیم پلمونولوجی چیسٹ کلینک</strong></p>
   `
@@ -487,7 +503,7 @@ console.log(formattedDate);
 
   <p>Please arrive 15 minutes prior to your scheduled time to complete the necessary formalities.</p>
   <p>To ensure a smooth consultation, kindly bring your old prescription and relevant medical records with you. If it is your first appointment, bring only necessary medical records.</p>
-  <p>We look forward to seeing you soon. If you have any questions or need to reschedule, please contact <strong>0309 8421122</strong>.</p>
+  <p>We look forward to seeing you soon. If you have any questions or need to reschedule, please contact <strong>${Ho_phoneUrdu}</strong>.</p>
   <p>Thank you for choosing Pulmonology Chest Clinic.</p>
   <p><strong>Appointment Number:</strong> ${appointment.appointmentNumber}</p>
   <p>Regards,<br/>
@@ -504,7 +520,8 @@ console.log(formattedDate);
   <p>میٹنگ کو بہتر بنانے کے لیے، برائے مہربانی اپنا پرانا نسخہ اور متعلقہ طبی دستاویزات اپنے ساتھ لائیں۔ اگر آپ کی پہلی ملاقات ہے تو صرف متعلقہ طبی دستاویزات اپنے ہمراہ لائیں۔ شکریہ</p>
   <p>ہم آپ کو جلد دیکھنے کے منتظر ہیں۔ اگر آپ کے کوئی سوالات ہیں یا میٹنگ کی تاریخ تبدیل کرنا چاہتے ہیں تو ہم سے رابطہ کریں۔ شکریہ</p>
   <p>ٹیم پلمونولوجی چیسٹ کلینک پروفیسر ڈاکٹر نور العارفین<br/>
-  رابطہ: 0309 8421122</p>
+<p/> ${Ho_showMessage}
+  
   `
   }
 
@@ -525,62 +542,6 @@ console.log(formattedDate);
 };
 
 
-//     const mailOptions = {
-//       from: process.env.EMAIL_FROM,
-//       to: appointment.email,
-//       subject: `Appointment Confirmation - ${appointment.appointmentNumber}`,
-//       html: `
-//   <h3>Dear ${appointment.fullName},</h3>
-//   <p>🕐 Your appointment request has been confirmed.</p>
-//   <p>👨 <strong>Doctor:</strong> Prof. Dr. Noor Ul Arfeen</p>
-//   <p>📅 <strong>Date & Time:</strong> ${formattedDate}</p>
-//   <p>📌 <strong>Appointment Type:</strong> ${appointment.appointmentType}</p>
-//   <p>🏥 <strong>Location:</strong> ${getLocationText(
-//     appointment.hospital,
-//     appointment.appointmentType === "Online"
-//   )}</p>
-
-//   <p>Please arrive 15 minutes prior to your scheduled time to complete the necessary formalities.</p>
-//   <p>To ensure a smooth consultation, kindly bring your old prescription and relevant medical records with you. If it is your first appointment, bring only necessary medical records.</p>
-//   <p>We look forward to seeing you soon. If you have any questions or need to reschedule, please contact <strong>0309 8421122</strong>.</p>
-//   <p>Thank you for choosing Pulmonology Chest Clinic.</p>
-//   <p><strong>Appointment Number:</strong> ${appointment.appointmentNumber}</p>
-//   <p>Regards,<br/>
-//   Team Pulmonology / Chest Clinic by Prof Dr Noor Ul Arfeen</p>
-
-//   <hr/>
-
-//   <p>اسلام وعلیکم ${appointment.fullName},</p>
-//   <p>ہم آپ کی پروفیسر ڈاکٹر نور العارفین کے ساتھ ${
-//      formattedDate  
-//   } کو ${getLocationText(
-//         appointment.hospital,
-//         appointment.appointmentType === "Online"
-//       )} پر شیڈول کردہ ملاقات کی تصدیق کرتے ہیں۔</p>
-//   <p>برائے مہربانی ضروری کارروائی کے لیے اپنی مقررہ وقت سے 15 منٹ قبل تشریف لائیں۔</p>
-//   <p>میٹنگ کو بہتر بنانے کے لیے، برائے مہربانی اپنا پرانا نسخہ اور متعلقہ طبی دستاویزات اپنے ساتھ لائیں۔ اگر آپ کی پہلی ملاقات ہے تو صرف متعلقہ طبی دستاویزات اپنے ہمراہ لائیں۔ شکریہ</p>
-//   <p>ہم آپ کو جلد دیکھنے کے منتظر ہیں۔ اگر آپ کے کوئی سوالات ہیں یا میٹنگ کی تاریخ تبدیل کرنا چاہتے ہیں تو ہم سے رابطہ کریں۔ شکریہ</p>
-//   <p>ٹیم پلمونولوجی چیسٹ کلینک پروفیسر ڈاکٹر نور العارفین<br/>
-//   رابطہ: 0309 8421122</p>
-  
-//   <p>Please find your confirmation PDF attached.${
-//     pdfBuffer ? "" : " (PDF unavailable this time—contact us if needed.)"
-//   }</p>
-
-
-  
-// `,
-     
-//       attachments: pdfBuffer
-//         ? [
-//             {
-//               filename: `Appointment-${appointment.appointmentNumber}.pdf`,
-//               content: pdfBuffer,
-//               contentType: "application/pdf",
-//             },
-//           ]
-//         : [],
-//     };
 
     await transporter.sendMail(mailOptions);
     console.log(
