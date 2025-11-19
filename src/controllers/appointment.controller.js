@@ -1,9 +1,11 @@
-const AppointmentNew = require('../models/AppointmentNew.model');
-const AppointmentAccepted = require('../models/AppointmentAccepted.model');
-const { getNextAppointmentNumberFor } = require('../utils/appointmentNumber');
+const AppointmentNew = require("../models/AppointmentNew.model");
+const AppointmentAccepted = require("../models/AppointmentAccepted.model");
+const { getNextAppointmentNumberFor } = require("../utils/appointmentNumber");
 // const { sendWhatsApp } = require('../services/whatsapp.service');
-const { sendAppointmentEmailWithPdf } = require('../services/emailPdf.service');
-const { createSendAppointmentEmailWithPdf } = require('../services/create-emailPdf.service');
+const { sendAppointmentEmailWithPdf } = require("../services/emailPdf.service");
+const {
+  createSendAppointmentEmailWithPdf,
+} = require("../services/create-emailPdf.service");
 const connectDB = require("../config/db");
 
 // Ensure database connection for serverless environments
@@ -20,16 +22,23 @@ const ensureConnection = async () => {
 exports.createAppointment = async (req, res) => {
   const payload = req.body;
   // basic validation - you can use Joi instead
-  if (!payload.fullName || !payload.mobile || !payload.datetime || !payload.appointmentType) {
-    return res.status(400).json({ message: 'Missing required fields' });
+  if (
+    !payload.fullName ||
+    !payload.mobile ||
+    !payload.datetime ||
+    !payload.appointmentType
+  ) {
+    return res.status(400).json({ message: "Missing required fields" });
   }
 
   // generate appointment number based on the appointment datetime
-  const appointmentNumber = await getNextAppointmentNumberFor(payload.datetime || new Date());
+  const appointmentNumber = await getNextAppointmentNumberFor(
+    payload.datetime || new Date()
+  );
 
   const newAppt = await AppointmentNew.create({
     ...payload,
-    appointmentNumber
+    appointmentNumber,
   });
 
   // send WhatsApp notification (best-effort)
@@ -47,43 +56,58 @@ exports.createAppointment = async (req, res) => {
   // }
 
   // send email with PDF if email exists
-  if (newAppt.email) {
-    try {
-      await createSendAppointmentEmailWithPdf(newAppt.email, newAppt);
-    } catch (err) {
-      console.warn('Email send failed:', err.message || err);
-      // Also log to application logs for better visibility
-      console.error('Email Error Details:', {
-        email: newAppt.email,
-        appointmentNumber: appointmentNumber,
-        error: err.stack || err
-      });
-    }
-  }
+  // if (newAppt.email) {
+  //   try {
+  //     await createSendAppointmentEmailWithPdf(newAppt.email, newAppt);
+  //   } catch (err) {
+  //     console.warn('Email send failed:', err.message || err);
+  //     // Also log to application logs for better visibility
+  //     console.error('Email Error Details:', {
+  //       email: newAppt.email,
+  //       appointmentNumber: appointmentNumber,
+  //       error: err.stack || err
+  //     });
+  //   }
+  // }
 
-  return res.status(201).json({ message: 'Appointment created (pending confirmation)', appointment: newAppt });
+  return res
+    .status(201)
+    .json({
+      message: "Appointment created (pending confirmation)",
+      appointment: newAppt,
+    });
 };
 
 exports.getNewAppointments = async (req, res) => {
   try {
     await ensureConnection();
-    const { page = 1, limit = 10, search = '' } = req.query;
-    const q = search ? {
-      $or: [
-        { fullName: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { mobile: { $regex: search, $options: 'i' } },
-        { appointmentNumber: { $regex: search, $options: 'i' } }
-      ]
-    } : {};
+    const { page = 1, limit = 10, search = "" } = req.query;
+    const q = search
+      ? {
+          $or: [
+            { fullName: { $regex: search, $options: "i" } },
+            { email: { $regex: search, $options: "i" } },
+            { mobile: { $regex: search, $options: "i" } },
+            { appointmentNumber: { $regex: search, $options: "i" } },
+          ],
+        }
+      : {};
 
     const skip = (page - 1) * limit;
     const [items, total] = await Promise.all([
-      AppointmentNew.find(q).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit)),
-      AppointmentNew.countDocuments(q)
+      AppointmentNew.find(q)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit)),
+      AppointmentNew.countDocuments(q),
     ]);
 
-    res.json({ page: parseInt(page), totalPages: Math.ceil(total / limit), total, items });
+    res.json({
+      page: parseInt(page),
+      totalPages: Math.ceil(total / limit),
+      total,
+      items,
+    });
   } catch (err) {
     console.error("Error getting new appointments:", err);
     res.status(500).json({ error: err.message });
@@ -97,10 +121,11 @@ exports.confirmAppointment = async (req, res) => {
   try {
     await ensureConnection();
     const { id } = req.params;
-    const { date, time } = req.body;  // <-- alag alag time & date
+    const { date, time } = req.body; // <-- alag alag time & date
 
     const appt = await AppointmentNew.findById(id);
-    if (!appt) return res.status(404).json({ message: "Appointment not found" });
+    if (!appt)
+      return res.status(404).json({ message: "Appointment not found" });
 
     // Agar date/time diya ho to combine kro, warna old datetime use kro
     let finalDatetime;
@@ -155,23 +180,33 @@ exports.confirmAppointment = async (req, res) => {
 exports.getAcceptedAppointments = async (req, res) => {
   try {
     await ensureConnection();
-    const { page = 1, limit = 10, search = '' } = req.query;
-    const q = search ? {
-      $or: [
-        { fullName: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { mobile: { $regex: search, $options: 'i' } },
-        { appointmentNumber: { $regex: search, $options: 'i' } }
-      ]
-    } : {};
+    const { page = 1, limit = 10, search = "" } = req.query;
+    const q = search
+      ? {
+          $or: [
+            { fullName: { $regex: search, $options: "i" } },
+            { email: { $regex: search, $options: "i" } },
+            { mobile: { $regex: search, $options: "i" } },
+            { appointmentNumber: { $regex: search, $options: "i" } },
+          ],
+        }
+      : {};
 
     const skip = (page - 1) * limit;
     const [items, total] = await Promise.all([
-      AppointmentAccepted.find(q).sort({ acceptedAt: -1 }).skip(skip).limit(parseInt(limit)),
-      AppointmentAccepted.countDocuments(q)
+      AppointmentAccepted.find(q)
+        .sort({ acceptedAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit)),
+      AppointmentAccepted.countDocuments(q),
     ]);
 
-    res.json({ page: parseInt(page), totalPages: Math.ceil(total / limit), total, items });
+    res.json({
+      page: parseInt(page),
+      totalPages: Math.ceil(total / limit),
+      total,
+      items,
+    });
   } catch (err) {
     console.error("Error getting accepted appointments:", err);
     res.status(500).json({ error: err.message });
@@ -185,7 +220,7 @@ exports.getNewById = async (req, res) => {
   try {
     await ensureConnection();
     const a = await AppointmentNew.findById(req.params.id);
-    if (!a) return res.status(404).json({ message: 'Not found' });
+    if (!a) return res.status(404).json({ message: "Not found" });
     res.json(a);
   } catch (err) {
     console.error("Error getting new appointment by ID:", err);
@@ -197,9 +232,11 @@ exports.updateNew = async (req, res) => {
   try {
     await ensureConnection();
     const updates = req.body;
-    const a = await AppointmentNew.findByIdAndUpdate(req.params.id, updates, { new: true });
-    if (!a) return res.status(404).json({ message: 'Not found' });
-    res.json({ message: 'Updated', a });
+    const a = await AppointmentNew.findByIdAndUpdate(req.params.id, updates, {
+      new: true,
+    });
+    if (!a) return res.status(404).json({ message: "Not found" });
+    res.json({ message: "Updated", a });
   } catch (err) {
     console.error("Error updating new appointment:", err);
     res.status(500).json({ error: err.message });
@@ -210,7 +247,7 @@ exports.deleteNew = async (req, res) => {
   try {
     await ensureConnection();
     await AppointmentNew.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Deleted' });
+    res.json({ message: "Deleted" });
   } catch (err) {
     console.error("Error deleting new appointment:", err);
     res.status(500).json({ error: err.message });
@@ -221,7 +258,7 @@ exports.getAcceptedById = async (req, res) => {
   try {
     await ensureConnection();
     const a = await AppointmentAccepted.findById(req.params.id);
-    if (!a) return res.status(404).json({ message: 'Not found' });
+    if (!a) return res.status(404).json({ message: "Not found" });
     res.json(a);
   } catch (err) {
     console.error("Error getting accepted appointment by ID:", err);
@@ -234,9 +271,13 @@ exports.updateAccepted = async (req, res) => {
     await ensureConnection();
     const updates = req.body;
     // if you want to regenerate PDF on update & re-email, do that here
-    const a = await AppointmentAccepted.findByIdAndUpdate(req.params.id, updates, { new: true });
-    if (!a) return res.status(404).json({ message: 'Not found' });
-    res.json({ message: 'Updated', a });
+    const a = await AppointmentAccepted.findByIdAndUpdate(
+      req.params.id,
+      updates,
+      { new: true }
+    );
+    if (!a) return res.status(404).json({ message: "Not found" });
+    res.json({ message: "Updated", a });
   } catch (err) {
     console.error("Error updating accepted appointment:", err);
     res.status(500).json({ error: err.message });
@@ -247,7 +288,7 @@ exports.deleteAccepted = async (req, res) => {
   try {
     await ensureConnection();
     await AppointmentAccepted.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Deleted' });
+    res.json({ message: "Deleted" });
   } catch (err) {
     console.error("Error deleting accepted appointment:", err);
     res.status(500).json({ error: err.message });

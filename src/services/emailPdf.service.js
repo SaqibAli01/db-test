@@ -66,7 +66,7 @@ function getLocationText(hospital, isOnline = false) {
       return "Chaudhary Hospital satellite town Khokar ke Gujranwala";
     default:
       if (!isOnline) {
-        return "Doctors Hospital & Medical Center, Lahore";
+        return "E Chest Clinic, Online";
       }
       return "";
   }
@@ -96,30 +96,32 @@ function generateUrduText(appointment) {
   const fullName = appointment.fullName || "";
   const dateTime = appointment.datetime || "";
   const location = getLocationText(appointment.hospital, isOnline);
-  const phone = appointment.mobile || "03098421122";
+
+  // const phone = appointment.mobile || "03098421122";
+  const phone =
+    appointment.hospital === "Gujranwala Chaudhary Hospital"
+      ? "03454221122"
+      : "03098421122";
   const phoneUrdu = `\u202A${phone}\u202C`;
-  const message = `رابطہ: ${phoneUrdu}`;
-  const showMessage = appointment.appointmentType !== "Gujranwala Chaudhary Hospital"? message : "";
-  
-  const H_phone =  "03098421122";
-  const H_phoneUrdu = `\u202A${H_phone}\u202C`;
-  const H_message = `رابطہ: ${H_phoneUrdu}`;
-  const H_showMessage = appointment.appointmentType !== "Gujranwala Chaudhary Hospital"? H_message : "";
+  const H_message = `رابطہ: ${phoneUrdu}`;
+  const H_showMessage = H_message;
 
-
-  const formattedDateTime = new Date(appointment.datetime).toLocaleString("en-US", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: true,
-});
-const date = new Date(dateTime).toLocaleDateString("en-US", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-});
+  const formattedDateTime = new Date(appointment.datetime).toLocaleString(
+    "en-US",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    }
+  );
+  const date = new Date(dateTime).toLocaleDateString("en-US", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 
   if (isOnline) {
     return `آپ کی ملاقات کی درخواست کی تصدیق ہو گئی ہے 👨‍⚕️
@@ -156,13 +158,13 @@ async function createAppointmentPdfBuffer(appointment) {
     appointment.appointmentType === "Online"
   );
   const formattedDate = new Date(appointment.datetime).toLocaleString("en-US", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: true,
-});
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
   const isPhysical = appointment.appointmentType === "Physical";
   const urduText = generateUrduText(appointment);
   const qrBase64 = await getImageBase64(
@@ -177,6 +179,11 @@ async function createAppointmentPdfBuffer(appointment) {
     console.error("❌ QR code fetch failed, skipping PDF generation");
     throw new Error("QR code image could not be fetched");
   }
+
+  const phone =
+    appointment.hospital === "Gujranwala Chaudhary Hospital"
+      ? "03454221122"
+      : "03098421122";
 
   const docDefinition = {
     pageSize: "A4",
@@ -256,9 +263,7 @@ async function createAppointmentPdfBuffer(appointment) {
                 ul: [
                   [`Full Name: ${appointment.fullName}`],
                   [`Appointment Number: ${appointment.appointmentNumber}`],
-                  [
-                    `Date: ${formattedDate}`,
-                  ],
+                  [`Date: ${formattedDate}`],
                   [`Phone: ${appointment.mobile || ""}`],
                   [`Email: ${appointment.email || ""}`],
                 ],
@@ -352,7 +357,7 @@ async function createAppointmentPdfBuffer(appointment) {
       },
       // Footer - Compact
       {
-        text: "© 2025 Pulmonology Chest Clinic - Thank you for choosing us. Contact: 0309 8421122",
+        text: `© 2025 Pulmonology Chest Clinic - Thank you for choosing us. Contact: ${phone}`,
         style: "footer",
         alignment: "center",
         margin: [0, 5, 0, 0],
@@ -416,27 +421,24 @@ async function createAppointmentPdfBuffer(appointment) {
 // SEND EMAIL WITH PDF
 // ============================
 async function sendAppointmentEmailWithPdf(appointment) {
+  const formattedDate = new Date(appointment.datetime).toLocaleString("en-US", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
 
-
-const formattedDate = new Date(appointment.datetime).toLocaleString("en-US", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: true,
-});
-
-
-const phone = appointment.mobile || "03098421122";
+  // const phone = appointment.mobile || "03098421122";
+  const phone =
+    appointment.hospital === "Gujranwala Chaudhary Hospital"
+      ? "03454221122"
+      : "03098421122";
   const phoneUrdu = `\u202A${phone}\u202C`;
-  const message = `رابطہ:  ${phoneUrdu}`;
-  const showMessage = appointment.appointmentType !== "Gujranwala Chaudhary Hospital"? message : "";
-  const showPhoneNo= appointment.appointmentType !== "Gujranwala Chaudhary Hospital"? phone : "";
-const Ho_phone = "03098421122";
-  const Ho_phoneUrdu = `\u202A${Ho_phone}\u202C`;
-   const Ho_message = `رابطہ:  ${Ho_phoneUrdu}`;
-  const Ho_showMessage = appointment.appointmentType !== "Gujranwala Chaudhary Hospital"? Ho_message : "";
+
+  const Ho_message = `رابطہ: ${phoneUrdu}`;
+  const Ho_showMessage = Ho_message;
   try {
     // ✅ Validate email first
     if (!appointment.email) {
@@ -453,10 +455,10 @@ const Ho_phone = "03098421122";
     }
 
     const mailOptions = {
-  from: process.env.EMAIL_FROM,
-  to: appointment.email,
-  subject: `Appointment Confirmation - ${appointment.appointmentNumber}`,
-  html: `
+      from: process.env.EMAIL_FROM,
+      to: appointment.email,
+      subject: `Appointment Confirmation - ${appointment.appointmentNumber}`,
+      html: `
   ${
     appointment.appointmentType === "Online"
       ? `
@@ -476,7 +478,7 @@ const Ho_phone = "03098421122";
   <p><strong>Best regards,</strong><br/>
   Team Pulmonology Chest Clinic by Prof. Dr Noor Ul Arfeen</p>
   <hr/>
-
+  
   <p>آپ کی ملاقات کی درخواست کی تصدیق ہو گئی ہے 👨</p>
   <p><strong>ڈاکٹر:</strong> پروفیسر ڈاکٹر نور العارفین</p>
   <p>📅 <strong>تاریخ:</strong> ${formattedDate}</p>
@@ -491,6 +493,7 @@ const Ho_phone = "03098421122";
   <p><strong>ٹیم پلمونولوجی چیسٹ کلینک</strong></p>
   `
       : `
+
   <h3>Dear ${appointment.fullName},</h3>
   <p>🕐 Your appointment request has been confirmed.</p>
   <p>👨 <strong>Doctor:</strong> Prof. Dr. Noor Ul Arfeen</p>
@@ -501,21 +504,23 @@ const Ho_phone = "03098421122";
     false
   )}</p>
 
+
   <p>Please arrive 15 minutes prior to your scheduled time to complete the necessary formalities.</p>
   <p>To ensure a smooth consultation, kindly bring your old prescription and relevant medical records with you. If it is your first appointment, bring only necessary medical records.</p>
-  <p>We look forward to seeing you soon. If you have any questions or need to reschedule, please contact <strong>${Ho_phoneUrdu}</strong>.</p>
+  <p>We look forward to seeing you soon. If you have any questions or need to reschedule, please contact <strong>${phone}</strong>.</p>
   <p>Thank you for choosing Pulmonology Chest Clinic.</p>
   <p><strong>Appointment Number:</strong> ${appointment.appointmentNumber}</p>
   <p>Regards,<br/>
   Team Pulmonology / Chest Clinic by Prof Dr Noor Ul Arfeen</p>
 
+
   <hr/>
 
   <p>اسلام وعلیکم ${appointment.fullName},</p>
   <p>ہم آپ کی پروفیسر ڈاکٹر نور العارفین کے ساتھ ${formattedDate} کو ${getLocationText(
-        appointment.hospital,
-        false
-      )} پر شیڈول کردہ ملاقات کی تصدیق کرتے ہیں۔</p>
+          appointment.hospital,
+          false
+        )} پر شیڈول کردہ ملاقات کی تصدیق کرتے ہیں۔</p>
   <p>برائے مہربانی ضروری کارروائی کے لیے اپنی مقررہ وقت سے 15 منٹ قبل تشریف لائیں۔</p>
   <p>میٹنگ کو بہتر بنانے کے لیے، برائے مہربانی اپنا پرانا نسخہ اور متعلقہ طبی دستاویزات اپنے ساتھ لائیں۔ اگر آپ کی پہلی ملاقات ہے تو صرف متعلقہ طبی دستاویزات اپنے ہمراہ لائیں۔ شکریہ</p>
   <p>ہم آپ کو جلد دیکھنے کے منتظر ہیں۔ اگر آپ کے کوئی سوالات ہیں یا میٹنگ کی تاریخ تبدیل کرنا چاہتے ہیں تو ہم سے رابطہ کریں۔ شکریہ</p>
@@ -530,18 +535,16 @@ const Ho_phone = "03098421122";
   }</p>
   `,
 
-  attachments: pdfBuffer
-    ? [
-        {
-          filename: `Appointment-${appointment.appointmentNumber}.pdf`,
-          content: pdfBuffer,
-          contentType: "application/pdf",
-        },
-      ]
-    : [],
-};
-
-
+      attachments: pdfBuffer
+        ? [
+            {
+              filename: `Appointment-${appointment.appointmentNumber}.pdf`,
+              content: pdfBuffer,
+              contentType: "application/pdf",
+            },
+          ]
+        : [],
+    };
 
     await transporter.sendMail(mailOptions);
     console.log(
